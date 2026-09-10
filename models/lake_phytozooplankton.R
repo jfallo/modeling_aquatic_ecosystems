@@ -1,5 +1,8 @@
 library("ecosim")
 
+
+# --- model with constant driving forces --- #
+
 # set parameters
 param <- list(k.gro.ALG   = 0.5,     # 1/d
               k.gro.ZOO   = 0.4,     # gDM/m3d
@@ -63,8 +66,23 @@ res <- calcres(system.lake_phytozooplankton)
 plotres(res, colnames= list("C.ALG", "C.ZOO", "C.HPO4"))
 plotres(res, colnames= c("C.ALG", "C.ZOO", "C.HPO4"))
 
+# sensitivity analysis
+res.sens <- calcsens(system     = system.lake_phytozooplankton,
+                     param.sens = c("C.HPO4.in", 
+                                    "Q.in", 
+                                    "k.death.ALG",
+                                    "k.gro.ZOO",
+                                    "k.death.ZOO",
+                                    "Y.ZOO"))
+plotres(res      = res.sens,
+        colnames = list("C.HPO4", "C.ALG", "C.ZOO"))
 
-# extend model for seasonally varying driving forces
+
+
+
+# --- model with seasonally varying driving forces --- #
+
+# extend model
 system.lake_phytozooplankton.ext <- system.lake_phytozooplankton
 
 # extend model parameters
@@ -128,6 +146,18 @@ plot(t, T, type= "l")
 # simulate and plot results
 res.ext <- calcres(system.lake_phytozooplankton.ext)
 plotres(res.ext, colnames= list("C.HPO4", c("C.ALG", "C.ZOO")))
+
+# sensitivity analysis
+# sensitivity analysis
+res.ext.sens <- calcsens(system     = system.lake_phytozooplankton.ext,
+                     param.sens = c("C.HPO4.in", 
+                                    "Q.in", 
+                                    "k.death.ALG",
+                                    "k.gro.ZOO",
+                                    "k.death.ZOO",
+                                    "Y.ZOO"))
+plotres(res      = res.ext.sens,
+        colnames = list("C.HPO4", "C.ALG", "C.ZOO"))
 
 
 # compare models
