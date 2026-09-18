@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from helpers.convert import mass_to_molar, molar_to_mass
+from helpers.stoichiometry import mass_to_molar, molar_to_mass, get_stoich_coeffs_df
 
 
 # --- simple stoichiometric solution --- #
@@ -168,30 +168,6 @@ alpha_df = pd.DataFrame(
 ).round(3)
 
 
-def get_coeffs_df(process, subs_and_orgs, normalized_substance, norm, additional_constraints= None):
-    alpha = np.array([
-        [compositions[s].get(c, 0.0) for s in subs_and_orgs]
-        for c in constraints
-    ])
-
-    normalization_constraint = np.zeros(len(subs_and_orgs))
-    normalization_constraint[subs_and_orgs.index(normalized_substance)] = norm
-
-    rows = [alpha, normalization_constraint]
-    if additional_constraints is not None:
-        rows.extend(additional_constraints)
-
-    A = np.vstack(rows)
-    b = np.zeros(A.shape[0])
-    b[len(constraints)] = 1.0
-
-    coeffs = np.linalg.solve(A, b)
-
-    return pd.DataFrame(
-        [coeffs],
-        index= [process],
-        columns= subs_and_orgs
-    )
 
 
 # - get stoichiometric coefficients for each process -
@@ -199,32 +175,40 @@ nu_df_rows = []
 
 # algae growth with ammonium as nitrogen source
 ALG_growth_NH4_substances = [s for s in substances if s not in {'NO3', 'ZOO', 'POM'}]
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae growth (NH4)',
+    compositions,
     ALG_growth_NH4_substances,
-    'ALG', 1.0
+    'ALG', 1.0,
+    constraints
 ))
 
 # algae growth with nitrate as nitrogen source
 ALG_growth_NO3_substances = [s for s in substances if s not in {'NH4', 'ZOO', 'POM'}]
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae growth (NO3)',
+    compositions,
     ALG_growth_NO3_substances,
-    'ALG', 1.0
+    'ALG', 1.0,
+    constraints
 ))
 
 # algae respiration with ammonium as nitrogen source
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae respiration (NH4)',
+    compositions,
     ALG_growth_NH4_substances,
-    'ALG', -1.0
+    'ALG', -1.0,
+    constraints
 ))
 
 # algae respiration with nitrate as nitrogen source
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae respiration (NO3)',
+    compositions,
     ALG_growth_NO3_substances,
-    'ALG', -1.0
+    'ALG', -1.0,
+    constraints
 ))
 
 # algae death
@@ -238,10 +222,12 @@ ALG_death_constraint = np.zeros(len(ALG_death_substances))
 ALG_death_constraint[ALG_death_substances.index('POM')] = 1.0
 ALG_death_constraint[ALG_death_substances.index('ALG')] = Y_ALG_death
 
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae death',
+    compositions,
     ALG_death_substances,
     'ALG', -1.0,
+    constraints,
     additional_constraints= [ALG_death_constraint]
 ))
 
@@ -256,19 +242,23 @@ POM_constraint = np.zeros(len(ZOO_growth_substances))
 POM_constraint[ZOO_growth_substances.index('POM')] = 1.0
 POM_constraint[ZOO_growth_substances.index('ALG')] = params['f_e']
 
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'zooplankton growth',
+    compositions,
     ZOO_growth_substances,
     'ZOO', 1.0,
+    constraints,
     additional_constraints= [ZOO_growth_constraint, POM_constraint]
 ))
 
 # zooplankton respiration
 ZOO_respiration_substances = [s for s in substances if s not in {'NO3', 'ALG', 'POM'}]
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'zooplankton respiration',
+    compositions,
     ZOO_respiration_substances,
-    'ZOO', -1.0
+    'ZOO', -1.0,
+    constraints
 ))
 
 # zooplankton death
@@ -282,10 +272,12 @@ ZOO_death_constraint = np.zeros(len(ZOO_death_substances))
 ZOO_death_constraint[ZOO_death_substances.index('POM')] = 1.0
 ZOO_death_constraint[ZOO_death_substances.index('ZOO')] = Y_ZOO_death
 
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'zooplankton death',
+    compositions,
     ZOO_death_substances,
     'ZOO', -1.0,
+    constraints,
     additional_constraints= [ZOO_death_constraint]
 ))
 
@@ -358,32 +350,40 @@ nu_df_rows = []
 
 # algae growth with ammonium as nitrogen source
 ALG_growth_NH4_substances = [s for s in substances if s not in {'NO3', 'ZOO', 'POM'}]
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae growth (NH4)',
+    compositions,
     ALG_growth_NH4_substances,
-    'ALG', 1.0
+    'ALG', 1.0,
+    constraints
 ))
 
 # algae growth with nitrate as nitrogen source
 ALG_growth_NO3_substances = [s for s in substances if s not in {'NH4', 'ZOO', 'POM'}]
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae growth (NO3)',
+    compositions,
     ALG_growth_NO3_substances,
-    'ALG', 1.0
+    'ALG', 1.0,
+    constraints
 ))
 
 # algae respiration with ammonium as nitrogen source
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae respiration (NH4)',
+    compositions,
     ALG_growth_NH4_substances,
-    'ALG', -1.0
+    'ALG', -1.0,
+    constraints
 ))
 
 # algae respiration with nitrate as nitrogen source
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae respiration (NO3)',
+    compositions,
     ALG_growth_NO3_substances,
-    'ALG', -1.0
+    'ALG', -1.0,
+    constraints
 ))
 
 # algae death
@@ -398,10 +398,12 @@ ALG_death_constraint = np.zeros(len(ALG_death_substances))
 ALG_death_constraint[ALG_death_substances.index('POM')] = 1.0
 ALG_death_constraint[ALG_death_substances.index('ALG')] = Y_ALG_death
 
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'algae death',
+    compositions,
     ALG_death_substances,
     'ALG', -1.0,
+    constraints,
     additional_constraints= [ALG_death_constraint]
 ))
 
@@ -416,19 +418,23 @@ POM_constraint = np.zeros(len(ZOO_growth_substances))
 POM_constraint[ZOO_growth_substances.index('POM')] = 1.0
 POM_constraint[ZOO_growth_substances.index('ALG')] = params['f_e']
 
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'zooplankton growth',
+    compositions,
     ZOO_growth_substances,
     'ZOO', 1.0,
+    constraints,
     additional_constraints= [ZOO_growth_constraint, POM_constraint]
 ))
 
 # zooplankton respiration
 ZOO_respiration_substances = [s for s in substances if s not in {'NO3', 'ALG', 'POM'}]
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'zooplankton respiration',
+    compositions,
     ZOO_respiration_substances,
-    'ZOO', -1.0
+    'ZOO', -1.0,
+    constraints
 ))
 
 # zooplankton death
@@ -443,10 +449,12 @@ ZOO_death_constraint = np.zeros(len(ZOO_death_substances))
 ZOO_death_constraint[ZOO_death_substances.index('POM')] = 1.0
 ZOO_death_constraint[ZOO_death_substances.index('ZOO')] = Y_ZOO_death
 
-nu_df_rows.append(get_coeffs_df(
+nu_df_rows.append(get_stoich_coeffs_df(
     'zooplankton death',
+    compositions,
     ZOO_death_substances,
     'ZOO', -1.0,
+    constraints,
     additional_constraints= [ZOO_death_constraint]
 ))
 
