@@ -53,28 +53,22 @@ param <- list(alpha.O.ALG = 0.50,   # gO/gALG
               f.e         = 0.4)    # gPOM/gALG
 
 # define carbon factor such that factors sum to 1
-param$alpha.C.ALG = 1 - (
-    param$alpha.O.ALG
-    + param$alpha.H.ALG
-    + param$alpha.N.ALG
-    + param$alpha.P.ALG
-)
-param$alpha.C.ZOO = 1 - (
-    param$alpha.O.ZOO
-    + param$alpha.H.ZOO
-    + param$alpha.N.ZOO
-    + param$alpha.P.ZOO
-)
-param$alpha.C.POM = 1 - (
-    param$alpha.O.POM
-    + param$alpha.H.POM
-    + param$alpha.N.POM
-    + param$alpha.P.POM
-)
+param$alpha.C.ALG = 1 - (param$alpha.O.ALG
+                          + param$alpha.H.ALG
+                          + param$alpha.N.ALG
+                          + param$alpha.P.ALG)
+param$alpha.C.ZOO = 1 - (param$alpha.O.ZOO
+                          + param$alpha.H.ZOO
+                          + param$alpha.N.ZOO
+                          + param$alpha.P.ZOO)
+param$alpha.C.POM = 1 - (param$alpha.O.POM
+                          + param$alpha.H.POM
+                          + param$alpha.N.POM
+                          + param$alpha.P.POM)
 
 NH4  <- c(N = 1,
           H = 4,
-          charge = 3)
+          charge = 1)
 NO3  <- c(N = 1,
           O = 3,
           charge = -1)
